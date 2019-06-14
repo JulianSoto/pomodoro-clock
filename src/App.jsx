@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
+import NumberInput from './NumberInput.jsx';
 
 class App extends Component {
   state = {
@@ -61,6 +62,18 @@ class App extends Component {
     });
   };
 
+  breakTimeChange = value => {
+    this.setState({
+      restMinutes: value
+    });
+  };
+
+  pomodoroTimeChange = value => {
+    this.setState({
+      pomodoroMinutes: value
+    });
+  };
+
   render() {
     const sec = Math.floor(this.state.totalTime / 1000) % 60,
       min = Math.floor(this.state.totalTime / 1000 / 60);
@@ -69,6 +82,20 @@ class App extends Component {
     return (
       <div>
         <span>{clock}</span>
+        <div>
+          <NumberInput
+            value={25}
+            min={1}
+            changeValue={this.pomodoroTimeChange}
+          />
+          <span>MIN</span>
+          <span>POMODORO</span>
+        </div>
+        <div>
+          <NumberInput value={5} min={1} changeValue={this.breakTimeChange} />
+          <span>MIN</span>
+          <span>BREAK</span>
+        </div>
         {this.state.stopped ? (
           <button onClick={this.start}>Start</button>
         ) : (
