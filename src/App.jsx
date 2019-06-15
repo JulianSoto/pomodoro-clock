@@ -80,32 +80,42 @@ class App extends Component {
     const clock = `${min}:${sec < 10 ? `0` : ``}${sec}`;
 
     return (
-      <div>
-        <span>{clock}</span>
-        <div>
-          <NumberInput
-            value={25}
-            min={1}
-            changeValue={this.pomodoroTimeChange}
-          />
-          <span>MIN</span>
-          <span>POMODORO</span>
+      <div className="main-pomodoro">
+        <span className="timer">{clock}</span>
+        <div className="setters-container">
+          <div className="setter-wrapper">
+            <NumberInput
+              value={25}
+              min={1}
+              changeValue={this.pomodoroTimeChange}
+            />
+            <span>min</span>
+            <span className="setter-type">POMODORO</span>
+          </div>
+          <div className="setter-wrapper">
+            <NumberInput value={5} min={1} changeValue={this.breakTimeChange} />
+            <span>min</span>
+            <span className="setter-type">BREAK</span>
+          </div>
         </div>
-        <div>
-          <NumberInput value={5} min={1} changeValue={this.breakTimeChange} />
-          <span>MIN</span>
-          <span>BREAK</span>
+        <span className="prompt">
+          {this.state.stopped
+            ? 'Set the timers and press start'
+            : this.state.isResting
+            ? 'Rest!'
+            : 'Work on it!'}
+        </span>
+        <div className="trigger-container">
+          {this.state.stopped ? (
+            <button onClick={this.start} className="trigger">
+              Start
+            </button>
+          ) : (
+            <button onClick={this.stop} className="trigger">
+              Stop
+            </button>
+          )}
         </div>
-        {this.state.stopped ? (
-          <button onClick={this.start}>Start</button>
-        ) : (
-          <button onClick={this.stop}>Stop</button>
-        )}
-        {this.state.stopped ? null : this.state.isResting ? (
-          <span>Rest!</span>
-        ) : (
-          <span>Work on it!</span>
-        )}
       </div>
     );
   }

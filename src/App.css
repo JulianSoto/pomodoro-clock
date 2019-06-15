@@ -1,0 +1,64 @@
+.main-pomodoro {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-height: 420px;
+  justify-content: space-between;
+}
+
+.timer {
+  display: block;
+  font-size: 5em;
+  text-align: center;
+}
+
+.setters-container {
+  display: flex;
+  justify-content: space-around;
+}
+
+.setter-wrapper {
+  text-align: center;
+  font-weight: bold;
+}
+
+.setters-container input[type='number'] {
+  width: 50px;
+  font-size: 1.8em;
+  text-align: center;
+  border: none;
+}
+
+.setters-container button {
+  font-size: 1.8em;
+  border: none;
+  background: none;
+  width: 1em;
+}
+
+.setter-type {
+  display: block;
+}
+
+.prompt {
+  margin: 0 20px;
+  text-align: center;
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.trigger-container {
+  width: 100%;
+  padding: 0 20px 20px 20px;
+  bottom: 0;
+}
+
+.trigger {
+  padding: 10px;
+  -webkit-appearance: none;
+  font-size: 2em;
+  width: 100%;
+  background: #ff4747;
+  color: white;
+  border: none;
+}
