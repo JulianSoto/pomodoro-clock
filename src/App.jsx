@@ -9,6 +9,8 @@ class App extends Component {
     totalTime: 0,
     previousTime: 0,
     isResting: false,
+    minutes: 0,
+    seconds: 0,
     intervalID: null,
     stopped: true,
     pomodoroMinutes: 25,
@@ -18,8 +20,15 @@ class App extends Component {
   frame = () => {
     this.setState(
       prevState => {
+        const totalTime =
+          prevState.totalTime + Date.now() - prevState.previousTime;
+        const sec = Math.floor(totalTime / 1000) % 60,
+          min = Math.floor(totalTime / 1000 / 60);
+
         return {
-          totalTime: prevState.totalTime + Date.now() - prevState.previousTime,
+          totalTime,
+          minutes: min,
+          seconds: sec,
           previousTime: Date.now()
         };
       },
@@ -28,7 +37,9 @@ class App extends Component {
           if (this.state.totalTime / 1000 / 60 > this.state.restMinutes) {
             this.setState({
               isResting: false,
-              totalTime: 0
+              totalTime: 0,
+              minutes: 0,
+              seconds: 0
             });
             this.beep.play();
           }
@@ -36,7 +47,9 @@ class App extends Component {
           if (this.state.totalTime / 1000 / 60 > this.state.pomodoroMinutes) {
             this.setState({
               isResting: true,
-              totalTime: 0
+              totalTime: 0,
+              minutes: 0,
+              seconds: 0
             });
             this.beep.play();
           }
@@ -50,6 +63,8 @@ class App extends Component {
     if (this.state.stopped) {
       this.setState({
         totalTime: 0,
+        minutes: 0,
+        seconds: 0,
         previousTime: Date.now(),
         isResting: false,
         stopped: false,
@@ -63,7 +78,10 @@ class App extends Component {
   stop = () => {
     clearInterval(this.state.intervalID);
     this.setState({
-      stopped: true
+      stopped: true,
+      isResting: false,
+      minutes: 0,
+      seconds: 0
     });
   };
 
@@ -80,9 +98,23 @@ class App extends Component {
   };
 
   render() {
-    const sec = Math.floor(this.state.totalTime / 1000) % 60,
-      min = Math.floor(this.state.totalTime / 1000 / 60);
-    const clock = `${min}:${sec < 10 ? `0` : ``}${sec}`;
+    let remainingMinutes, remainingSeconds;
+
+    if (this.state.stopped) {
+      remainingMinutes = this.state.pomodoroMinutes - this.state.minutes;
+      remainingSeconds = 0;
+    } else {
+      if (this.state.isResting) {
+        remainingMinutes = this.state.restMinutes - this.state.minutes - 1;
+      } else {
+        remainingMinutes = this.state.pomodoroMinutes - this.state.minutes - 1;
+      }
+      remainingSeconds = 60 - this.state.seconds - 1;
+    }
+
+    const clock = `${remainingMinutes}:${
+      remainingSeconds < 10 ? `0` : ``
+    }${remainingSeconds}`;
 
     return (
       <div className="main-pomodoro">
