@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import './App.css';
 import NumberInput from './NumberInput.jsx';
+import beep from './assets/beep.ogg';
+import beepShort from './assets/beep-short.ogg';
 
 class App extends Component {
   state = {
@@ -28,6 +30,7 @@ class App extends Component {
               isResting: false,
               totalTime: 0
             });
+            this.beep.play();
           }
         } else {
           if (this.state.totalTime / 1000 / 60 > this.state.pomodoroMinutes) {
@@ -35,6 +38,7 @@ class App extends Component {
               isResting: true,
               totalTime: 0
             });
+            this.beep.play();
           }
         }
       }
@@ -42,6 +46,7 @@ class App extends Component {
   };
 
   start = () => {
+    this.beep.play();
     if (this.state.stopped) {
       this.setState({
         totalTime: 0,
@@ -116,6 +121,8 @@ class App extends Component {
             </button>
           )}
         </div>
+        <audio ref={ref => (this.beep = ref)} src={beep} />
+        <audio ref={ref => (this.shortBeep = ref)} src={beepShort} />
       </div>
     );
   }
