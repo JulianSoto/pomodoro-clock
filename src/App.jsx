@@ -6,71 +6,72 @@ import beepShort from './assets/beep-short.ogg';
 
 class App extends Component {
   state = {
-    totalTime: 0,
-    previousTime: 0,
     isResting: false,
     minutes: 0,
     seconds: 0,
     intervalID: null,
     stopped: true,
     pomodoroMinutes: 25,
-    restMinutes: 5
+    restMinutes: 5,
+    started: null
   };
 
   frame = () => {
-    this.setState(
-      prevState => {
-        const totalTime =
-          prevState.totalTime + Date.now() - prevState.previousTime;
-        const sec = Math.floor(totalTime / 1000) % 60,
-          min = Math.floor(totalTime / 1000 / 60);
+    const currentTime = Date.now();
+    if (
+      currentTime >
+      this.state.started +
+        this.state.minutes * 60 * 1000 +
+        (this.state.seconds + 1) * 1000
+    ) {
+      let sec = this.state.seconds + 1,
+        min = this.state.minutes,
+        switchTimer = false;
 
-        return {
-          totalTime,
-          minutes: min,
-          seconds: sec,
-          previousTime: Date.now()
-        };
-      },
-      () => {
-        if (this.state.isResting) {
-          if (this.state.totalTime / 1000 / 60 > this.state.restMinutes) {
-            this.setState({
-              isResting: false,
-              totalTime: 0,
-              minutes: 0,
-              seconds: 0
-            });
-            this.beep.play();
-          }
-        } else {
-          if (this.state.totalTime / 1000 / 60 > this.state.pomodoroMinutes) {
-            this.setState({
-              isResting: true,
-              totalTime: 0,
-              minutes: 0,
-              seconds: 0
-            });
-            this.beep.play();
-          }
+      if (sec >= 60) {
+        sec = 0;
+        min += 1;
+      }
+
+      if (this.state.isResting) {
+        if (min >= this.state.restMinutes) {
+          switchTimer = true;
+          min = 0;
+          sec = 0;
+        }
+      } else {
+        if (min >= this.state.pomodoroMinutes) {
+          switchTimer = true;
+          min = 0;
+          sec = 0;
         }
       }
-    );
+
+      this.setState(prevState => {
+        return {
+          seconds: sec,
+          minutes: min,
+          isResting: switchTimer ? !prevState.isResting : prevState.isResting,
+          started: switchTimer ? Date.now() : prevState.started
+        };
+      });
+
+      if (switchTimer) this.beep.play();
+    }
   };
 
   start = () => {
     this.beep.play();
     if (this.state.stopped) {
       this.setState({
-        totalTime: 0,
         minutes: 0,
         seconds: 0,
-        previousTime: Date.now(),
         isResting: false,
         stopped: false,
         intervalID: setInterval(() => {
           this.frame();
-        }, 1000 / 60)
+        }, 1000 / 60),
+        started: Date.now()
       });
     }
   };
@@ -81,7 +82,8 @@ class App extends Component {
       stopped: true,
       isResting: false,
       minutes: 0,
-      seconds: 0
+      seconds: 0,
+      started: null
     });
   };
 
