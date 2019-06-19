@@ -86,15 +86,23 @@ class App extends Component {
   };
 
   breakTimeChange = value => {
-    this.setState({
-      restMinutes: value
-    });
+    if (this.state.stopped) {
+      this.setState(prevState => {
+        return {
+          restMinutes: Math.max(prevState.restMinutes + value, 1)
+        };
+      });
+    }
   };
 
   pomodoroTimeChange = value => {
-    this.setState({
-      pomodoroMinutes: value
-    });
+    if (this.state.stopped) {
+      this.setState(prevState => {
+        return {
+          pomodoroMinutes: Math.max(prevState.pomodoroMinutes + value, 1)
+        };
+      });
+    }
   };
 
   render() {
@@ -122,15 +130,17 @@ class App extends Component {
         <div className="setters-container">
           <div className="setter-wrapper">
             <NumberInput
-              value={25}
-              min={1}
+              value={this.state.pomodoroMinutes}
               changeValue={this.pomodoroTimeChange}
             />
             <span>min</span>
             <span className="setter-type">POMODORO</span>
           </div>
           <div className="setter-wrapper">
-            <NumberInput value={5} min={1} changeValue={this.breakTimeChange} />
+            <NumberInput
+              value={this.state.restMinutes}
+              changeValue={this.breakTimeChange}
+            />
             <span>min</span>
             <span className="setter-type">BREAK</span>
           </div>
