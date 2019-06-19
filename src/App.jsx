@@ -1,56 +1,83 @@
 import React, { Component } from 'react';
 import './App.css';
 import NumberInput from './NumberInput.jsx';
+import beep from './assets/beep.ogg';
+import beepShort from './assets/beep-short.ogg';
 
 class App extends Component {
   state = {
-    totalTime: 0,
-    previousTime: 0,
     isResting: false,
+    minutes: 0,
+    seconds: 0,
     intervalID: null,
     stopped: true,
     pomodoroMinutes: 25,
-    restMinutes: 5
+    restMinutes: 5,
+    started: null
   };
 
   frame = () => {
-    this.setState(
-      prevState => {
-        return {
-          totalTime: prevState.totalTime + Date.now() - prevState.previousTime,
-          previousTime: Date.now()
-        };
-      },
-      () => {
-        if (this.state.isResting) {
-          if (this.state.totalTime / 1000 / 60 > this.state.restMinutes) {
-            this.setState({
-              isResting: false,
-              totalTime: 0
-            });
-          }
-        } else {
-          if (this.state.totalTime / 1000 / 60 > this.state.pomodoroMinutes) {
-            this.setState({
-              isResting: true,
-              totalTime: 0
-            });
-          }
+    const currentTime = Date.now();
+    if (
+      currentTime >
+      this.state.started +
+        this.state.minutes * 60 * 1000 +
+        (this.state.seconds + 1) * 1000
+    ) {
+      let sec = this.state.seconds + 1,
+        min = this.state.minutes,
+        switchTimer = false;
+
+      if (sec >= 60) {
+        sec = 0;
+        min += 1;
+      }
+
+      if (this.state.isResting) {
+        if (min >= this.state.restMinutes) {
+          switchTimer = true;
+          min = 0;
+          sec = 0;
+        }
+      } else {
+        if (min >= this.state.pomodoroMinutes) {
+          switchTimer = true;
+          min = 0;
+          sec = 0;
         }
       }
-    );
+
+      this.setState(prevState => {
+        return {
+          seconds: sec,
+          minutes: min,
+          isResting: switchTimer ? !prevState.isResting : prevState.isResting,
+          started: switchTimer ? Date.now() : prevState.started
+        };
+      });
+
+      if (switchTimer) this.beep.play();
+
+      let remainingSeconds = 60 - sec - 1;
+
+      if (remainingSeconds <= 2 && remainingSeconds >= 0) {
+        this.shortBeep.play();
+      }
+    }
   };
 
   start = () => {
+    this.beep.play();
     if (this.state.stopped) {
       this.setState({
-        totalTime: 0,
-        previousTime: Date.now(),
+        minutes: 0,
+        seconds: 0,
         isResting: false,
         stopped: false,
         intervalID: setInterval(() => {
           this.frame();
-        }, 1000 / 60)
+        }, 1000 / 60),
+        started: Date.now()
       });
     }
   };
@@ -58,26 +85,52 @@ class App extends Component {
   stop = () => {
     clearInterval(this.state.intervalID);
     this.setState({
-      stopped: true
+      stopped: true,
+      isResting: false,
+      minutes: 0,
+      seconds: 0,
+      started: null
     });
   };
 
   breakTimeChange = value => {
-    this.setState({
-      restMinutes: value
-    });
+    if (this.state.stopped) {
+      this.setState(prevState => {
+        return {
+          restMinutes: Math.max(prevState.restMinutes + value, 1)
+        };
+      });
+    }
   };
 
   pomodoroTimeChange = value => {
-    this.setState({
-      pomodoroMinutes: value
-    });
+    if (this.state.stopped) {
+      this.setState(prevState => {
+        return {
+          pomodoroMinutes: Math.max(prevState.pomodoroMinutes + value, 1)
+        };
+      });
+    }
   };
 
   render() {
-    const sec = Math.floor(this.state.totalTime / 1000) % 60,
-      min = Math.floor(this.state.totalTime / 1000 / 60);
-    const clock = `${min}:${sec < 10 ? `0` : ``}${sec}`;
+    let remainingMinutes, remainingSeconds;
+
+    if (this.state.stopped) {
+      remainingMinutes = this.state.pomodoroMinutes - this.state.minutes;
+      remainingSeconds = 0;
+    } else {
+      if (this.state.isResting) {
+        remainingMinutes = this.state.restMinutes - this.state.minutes - 1;
+      } else {
+        remainingMinutes = this.state.pomodoroMinutes - this.state.minutes - 1;
+      }
+      remainingSeconds = 60 - this.state.seconds - 1;
+    }
+
+    const clock = `${remainingMinutes}:${
+      remainingSeconds < 10 ? `0` : ``
+    }${remainingSeconds}`;
 
     return (
       <div className="main-pomodoro">
@@ -85,15 +138,17 @@ class App extends Component {
         <div className="setters-container">
           <div className="setter-wrapper">
             <NumberInput
-              value={25}
-              min={1}
+              value={this.state.pomodoroMinutes}
               changeValue={this.pomodoroTimeChange}
             />
             <span>min</span>
             <span className="setter-type">POMODORO</span>
           </div>
           <div className="setter-wrapper">
-            <NumberInput value={5} min={1} changeValue={this.breakTimeChange} />
+            <NumberInput
+              value={this.state.restMinutes}
+              changeValue={this.breakTimeChange}
+            />
             <span>min</span>
             <span className="setter-type">BREAK</span>
           </div>
@@ -116,6 +171,8 @@ class App extends Component {
             </button>
           )}
         </div>
+        <audio ref={ref => (this.beep = ref)} src={beep} />
+        <audio ref={ref => (this.shortBeep = ref)} src={beepShort} />
       </div>
     );
   }
