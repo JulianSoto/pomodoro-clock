@@ -57,6 +57,12 @@ class App extends Component {
       });
 
       if (switchTimer) this.beep.play();
+
+      let remainingSeconds = 60 - sec - 1;
+
+      if (remainingSeconds <= 2 && remainingSeconds >= 0) {
+        this.shortBeep.play();
+      }
     }
   };
 
